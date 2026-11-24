@@ -110,6 +110,14 @@ plugins:
     order: 92
   - source: github:quartz-community/fonts
     enabled: true
+    options:
+      useThemeFonts: false
+      fontOrigin: googleFonts
+      title: JetBrains Mono
+      header: JetBrains Mono
+      body: JetBrains Mono
+      code: JetBrains Mono
+      interface: JetBrains Mono
   - source: github:quartz-community/remove-draft
     enabled: true
   - source: github:quartz-community/explicit-publish
