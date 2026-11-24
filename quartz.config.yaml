@@ -6,7 +6,7 @@ configuration:
   enablePopovers: true
   analytics:
     provider: plausible
-  locale: en-US
+  locale: uk-UA
   baseUrl: ruslantkachenko.github.io/copypaster-notes
   ignorePatterns:
     - private
@@ -16,9 +16,9 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
-      code: IBM Plex Mono
+      header: JetBrains Mono
+      body: JetBrains Mono
+      code: JetBrains Mono
     colors:
       lightMode:
         light: "#faf8f8"
@@ -159,7 +159,7 @@ plugins:
       position: left
       priority: 50
   - source: github:quartz-community/graph
-    enabled: true
+    enabled: false
     layout:
       position: right
       priority: 10
