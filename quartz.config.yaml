@@ -297,6 +297,9 @@ plugins:
   - source: ./site-plugins/blog-home
     enabled: true
     order: 100
+    layout:
+      position: right
+      priority: 10
 layout:
   groups:
     toolbar:
