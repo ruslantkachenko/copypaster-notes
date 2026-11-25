@@ -1,10 +1,16 @@
 import { h } from "preact";
 import { htmlToJsx } from "@quartz-community/utils/jsx";
-import { resolveRelative } from "@quartz-community/utils/path";
+import { resolveRelative, slugTag } from "@quartz-community/utils/path";
+
+const INTERNAL_TAGS = new Set(["published", "note"]);
+
+function pageTags(page) {
+  const tags = page.frontmatter?.tags ?? [];
+  return Array.isArray(tags) ? tags.map(String) : [];
+}
 
 function isPublished(page) {
-  const tags = page.frontmatter?.tags ?? [];
-  return Array.isArray(tags) && tags.some((tag) => String(tag).toLowerCase() === "published");
+  return pageTags(page).some((tag) => tag.toLowerCase() === "published");
 }
 
 function createdDate(page) {
@@ -18,8 +24,10 @@ function plainExcerpt(page) {
   const source = String(page.description ?? page.text ?? "").trim();
   const text = source
     .replace(/^---[\s\S]*?---\s*/m, "")
-    .replace(/!?[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/!?\[[^\]]*\]/g, "")
+    .replace(/!\[\[([^\]]*)\]\]/g, "")
+    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, target, alias) => alias || target)
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/[>*_~`]/g, "")
     .replace(/\s+/g, " ")
@@ -42,14 +50,13 @@ function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
     .filter((page) => page.slug !== "index" && isPublished(page))
     .map((page) => ({ page, date: createdDate(page) }))
     .filter((item) => item.date)
+    // Newest first; editing a post does not change its created date.
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 
   const cards = posts.map(({ page, date }) => {
     const title = page.frontmatter?.title ?? "Без назви";
     const href = resolveRelative(fileData.slug, page.slug);
-    const tags = (page.frontmatter?.tags ?? []).filter(
-      (tag) => String(tag).toLowerCase() !== "published",
-    );
+    const tags = pageTags(page).filter((tag) => !INTERNAL_TAGS.has(tag.toLowerCase()));
     const excerpt = plainExcerpt(page);
 
     return h(
@@ -68,10 +75,10 @@ function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
                   "a",
                   {
                     class: "blog-tag",
-                    href: resolveRelative(fileData.slug, "tags/" + encodeURIComponent(String(tag))),
-                    key: String(tag),
+                    href: resolveRelative(fileData.slug, "tags/" + slugTag(tag)),
+                    key: tag,
                   },
-                  String(tag),
+                  tag,
                 ),
               ),
             )
@@ -149,19 +156,18 @@ BlogHomeBody.css = `
 .blog-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.18rem 0.65rem;
-  border: 1px solid var(--lightgray);
+  padding: 0.2rem 0.7rem;
+  border: 0;
   border-radius: 999px;
-  color: var(--gray);
-  background: transparent;
+  color: var(--darkgray);
+  background: var(--highlight);
   font-size: 0.78rem;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .blog-tag:hover {
   color: var(--dark);
-  background: var(--highlight);
-  border-color: var(--gray);
+  background: var(--lightgray);
 }
 .blog-read-more {
   display: inline-block;
