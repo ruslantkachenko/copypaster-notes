@@ -67,7 +67,7 @@ function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
 
     return h(
       "article",
-      { class: "blog-post-preview", key: page.slug },
+      { class: "blog-post-preview", "data-blog-tags": JSON.stringify(tags), key: page.slug },
       [
         h("p", { class: "blog-post-date" }, formatDate(date, cfg.locale)),
         h("h2", { class: "blog-post-title" }, h("a", { href, class: "internal" }, title)),
@@ -101,6 +101,11 @@ function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
       cards.length
         ? cards
         : h("p", { class: "blog-feed-empty" }, "Публікацій із тегом published поки немає."),
+      h(
+        "p",
+        { class: "blog-filter-empty", hidden: true },
+        "Немає публікацій із вибраним поєднанням тем.",
+      ),
     ]),
   ]);
 }
