@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { htmlToJsx } from "@quartz-community/utils/jsx";
-import { resolveRelative, slugTag } from "@quartz-community/utils/path";
+import { resolveRelative, slugTag, slugifyFilePath } from "@quartz-community/utils/path";
 
 const INTERNAL_TAGS = new Set(["published", "note"]);
 const PREVIEW_MARKER = /^\s*<!--\s*more\s*-->\s*$/i;
@@ -95,7 +95,9 @@ function normalizePublishedAssetPath(target) {
     path = path.slice(PUBLISHED_SOURCE_PREFIX.length);
   }
 
-  return path;
+  // Quartz's Assets emitter slugifies copied files (spaces become hyphens,
+  // letters become lowercase). Match that exact filename for the preview URL.
+  return slugifyFilePath(path);
 }
 
 function imageBlockFromToken(match) {
