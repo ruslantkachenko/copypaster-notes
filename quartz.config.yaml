@@ -294,6 +294,9 @@ plugins:
       darkMode: auto
       exportPadding: 20
     order: 50
+  - source: ./site-plugins/blog-home
+    enabled: true
+    order: 100
 layout:
   groups:
     toolbar:
@@ -307,6 +310,10 @@ layout:
         left: []
         right: []
     content: {}
+    blog-home:
+      exclude:
+        - content-meta
+        - note-properties
     folder:
       exclude:
         - reader-mode
