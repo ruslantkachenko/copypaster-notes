@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseManualPreview } from "./index.js";
+import { parseManualPreview, resolvePreviewAssetUrl } from "./index.js";
 
 test("no marker keeps automatic preview behavior available", () => {
   assert.equal(parseManualPreview("Звичайний текст без маркера"), null);
@@ -73,4 +73,27 @@ test("image attachment paths match Quartz's published slugified filenames", () =
   assert.deepEqual(result, [
     { type: "image", target: "embedded/unknown_filename-11.gif", alt: "unknown_filename 11.gif" },
   ]);
+});
+
+test("short image wikilinks resolve to assets inside embedded", () => {
+  const allSlugs = [
+    "index",
+    "заметки-на-полях",
+    "embedded/светофор.jpg",
+  ];
+  assert.equal(
+    resolvePreviewAssetUrl("index", "светофор.jpg", allSlugs),
+    "./embedded/светофор.jpg",
+  );
+});
+
+test("explicit embedded paths keep resolving from the homepage", () => {
+  const allSlugs = [
+    "index",
+    "embedded/unknown_filename-11.gif",
+  ];
+  assert.equal(
+    resolvePreviewAssetUrl("index", "embedded/unknown_filename-11.gif", allSlugs),
+    "./embedded/unknown_filename-11.gif",
+  );
 });
