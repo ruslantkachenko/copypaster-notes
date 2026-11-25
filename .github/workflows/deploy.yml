@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags]
   workflow_dispatch:
 
 permissions:
@@ -131,6 +131,19 @@ jobs:
             exit 1
           fi
           echo "The short image wikilink resolves to the embedded attachment."
+
+      - name: Verify compact note property styles
+        working-directory: quartz-engine
+        run: |
+          if ! grep -R -q 'note-properties-header' public --include='*.css'; then
+            echo "The custom note properties styles were not included in the generated CSS."
+            exit 1
+          fi
+          if ! grep -R -q 'note-properties-tags' public --include='*.css'; then
+            echo "The custom note tag styles were not included in the generated CSS."
+            exit 1
+          fi
+          echo "Compact note property styles are present in the generated site."
 
       - uses: actions/upload-pages-artifact@v5
         with:
