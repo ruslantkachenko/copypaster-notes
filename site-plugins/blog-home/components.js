@@ -37,7 +37,7 @@ export function BlogTagFilter() {
     );
 
     return h("aside", { class: "blog-tag-filter", "aria-label": "Фільтр публікацій за темами" }, [
-      h("h3", { class: "blog-tag-filter__title" }, "Теми"),
+      h("h3", { class: "blog-tag-filter__title" }, "Хмара тегів"),
       h(
         "div",
         { class: "blog-tag-filter__items" },
