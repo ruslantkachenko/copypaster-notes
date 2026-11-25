@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts]
   workflow_dispatch:
 
 permissions:
@@ -78,6 +78,10 @@ jobs:
         if: steps.quartz-deps-cache.outputs.cache-hit != 'true'
         working-directory: quartz-engine
         run: npx quartz plugin install
+
+      - name: Test manual blog previews
+        working-directory: quartz-engine
+        run: node --test site-plugins/blog-home/preview.test.js
 
       - name: Build site
         working-directory: quartz-engine
