@@ -106,6 +106,20 @@ jobs:
           fi
           echo "GIF attachment link was normalized successfully: $HTML_FILE"
 
+      - name: Verify manual preview boundary
+        working-directory: quartz-engine
+        run: |
+          HOME_HTML="public/index.html"
+          if ! grep -Fq 'Сразу оговорюсь' "$HOME_HTML"; then
+            echo "The expected text before the manual preview marker is missing."
+            exit 1
+          fi
+          if grep -Fq 'Вы, крепкий' "$HOME_HTML"; then
+            echo "Text after the manual preview marker leaked into the homepage excerpt."
+            exit 1
+          fi
+          echo "Homepage excerpt stops at the manual preview marker."
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: quartz-engine/public
