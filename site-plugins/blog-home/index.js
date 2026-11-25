@@ -116,7 +116,7 @@ function imageBlockFromToken(match) {
     target = parsed[2].trim();
   }
 
-  const originalPath = String(target ?? "").trim().replace(/\\\\/g, "/");
+  const originalPath = String(target ?? "").trim().replace(/\\/g, "/");
   const originalFileName = originalPath.split("/").pop() ?? originalPath;
   const path = normalizePublishedAssetPath(target);
   if (!/\.(?:png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(path)) return null;
