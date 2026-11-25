@@ -172,7 +172,7 @@ plugins:
   - source: github:quartz-community/explorer
     enabled: true
     options:
-      title: Розділи блогу
+      title: Купа постів
       folderClickBehavior: link
       folderDefaultState: collapsed
       useSavedState: true
