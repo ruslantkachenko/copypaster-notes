@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -82,6 +82,24 @@ jobs:
       - name: Build site
         working-directory: quartz-engine
         run: npx quartz build -d "$GITHUB_WORKSPACE/content"
+
+      - name: Verify GIF attachment path
+        working-directory: quartz-engine
+        run: |
+          HTML_FILE="$(grep -RIl 'Эта гифка путешествует по сети уже давно' public --include='*.html' | head -n 1)"
+          if [[ -z "$HTML_FILE" ]]; then
+            echo "Could not find the published GIF article HTML."
+            exit 1
+          fi
+          if ! grep -q 'unknown_filename' "$HTML_FILE"; then
+            echo "The GIF file reference was not found in the article HTML."
+            exit 1
+          fi
+          if grep -q 'Evernote/Published' "$HTML_FILE"; then
+            echo "The original vault folder prefix remains in the published HTML."
+            exit 1
+          fi
+          echo "GIF attachment link was normalized successfully: $HTML_FILE"
 
       - uses: actions/upload-pages-artifact@v5
         with:
