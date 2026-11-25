@@ -1,5 +1,9 @@
 ---
 title: Записки копіпастера
+created: 2011-01-01
 ---
 
-This file has been created automatically by GitHub Publish plugin. Quartz expects a 'index.md' at the top level to render the home page of your site, feel free to edit the title and write your content!
+Цей блог є особистою думкою автора, та переживає вже третю інкарнацію від початку 2011 року.
+Не генерю контент, не створюю ідей. Дивлюсь за навколишнім світом, щось коментую, щось критикую, щось колекціоную, а щось просто копіюю.
+
+![[Pasted image 20261125115035.png]]
