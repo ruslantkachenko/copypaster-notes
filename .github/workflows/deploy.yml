@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url]
   workflow_dispatch:
 
 permissions:
@@ -119,7 +119,7 @@ jobs:
             exit 1
           fi
           echo "Homepage excerpt stops at the manual preview marker."
-          if ! grep -Fq 'blog-post-excerpt-image' "$HOME_HTML" || ! grep -Fq 'unknown_filename' "$HOME_HTML"; then
+          if ! grep -Fq 'blog-post-excerpt-image' "$HOME_HTML" || ! grep -Fq 'unknown_filename-11.gif' "$HOME_HTML"; then
             echo "The image before the manual preview marker is missing from the homepage preview."
             exit 1
           fi
