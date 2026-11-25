@@ -1,0 +1,22 @@
+{
+  "name": "copypaster-publish-path-fix",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "quartz": {
+    "name": "publish-path-fix",
+    "displayName": "Copypaster Publish Path Fix",
+    "description": "Normalizes embedded attachment paths after publishing a selected Obsidian folder.",
+    "category": "transformer",
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "defaultOrder": 25,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "sourcePrefix": "Evernote/Published/"
+    }
+  }
+}
