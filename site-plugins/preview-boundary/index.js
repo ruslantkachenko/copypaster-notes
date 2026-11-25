@@ -1,33 +1,39 @@
-const PREVIEW_MARKER = /^\\s*<!--\\s*more\\s*-->\\s*$/i;
+const PREVIEW_MARKER = "<!-- more -->";
 export const PREVIEW_BOUNDARY_TOKEN = "COPypasterManualPreviewBoundary9F61D2";
 
 function markPreviewBoundary(source) {
-  const parts = String(source ?? "").split(/(\\r?\\n)/);
+  const lines = String(source ?? "").split("\n");
   let fenceCharacter = null;
   let fenceLength = 0;
 
-  for (let i = 0; i < parts.length; i += 2) {
-    const line = parts[i];
-    const fence = line.match(/^\\s*(`{3,}|~{3,})/);
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const first = line.trimStart();
+    const markerCharacter = first[0];
+    let markerLength = 0;
 
-    if (fence) {
-      const marker = fence[1];
+    if (markerCharacter === "`" || markerCharacter === "~") {
+      while (first[markerLength] === markerCharacter) markerLength += 1;
+    }
+
+    if (markerLength >= 3) {
       if (fenceCharacter === null) {
-        fenceCharacter = marker[0];
-        fenceLength = marker.length;
-      } else if (marker[0] === fenceCharacter && marker.length >= fenceLength) {
+        fenceCharacter = markerCharacter;
+        fenceLength = markerLength;
+      } else if (markerCharacter === fenceCharacter && markerLength >= fenceLength) {
         fenceCharacter = null;
         fenceLength = 0;
       }
       continue;
     }
 
-    if (fenceCharacter === null && PREVIEW_MARKER.test(line)) {
-      parts[i] = PREVIEW_BOUNDARY_TOKEN;
+    if (fenceCharacter === null && trimmed.toLowerCase() === PREVIEW_MARKER) {
+      lines[i] = line.replace(trimmed, PREVIEW_BOUNDARY_TOKEN);
     }
   }
 
-  return parts.join("");
+  return lines.join("\n");
 }
 
 export function removePreviewBoundary(node) {
