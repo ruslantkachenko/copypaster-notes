@@ -21,17 +21,23 @@ function createdDate(page) {
 }
 
 function plainExcerpt(page) {
-  const source = String(page.description ?? page.text ?? "").trim();
-  const text = source
-    .replace(/^---[\s\S]*?---\s*/m, "")
-    .replace(/!\[\[([^\]]*)\]\]/g, "")
-    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, target, alias) => alias || target)
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/[>*_~`]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const clean = (source) =>
+    String(source ?? "")
+      .trim()
+      .replace(/^---[\s\S]*?---\s*/m, "")
+      .replace(/!\[\[([^\]]*)\]\]/g, "")
+      .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_match, target, alias) => alias || target)
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/[>*_~`]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const candidates = [clean(page.description), clean(page.text)].filter((text) =>
+    /[\p{L}\p{N}]/u.test(text),
+  );
+  const text = candidates.sort((a, b) => b.length - a.length)[0] ?? "";
   if (!text) return "";
   return text.length > 320 ? text.slice(0, 317).trimEnd() + "…" : text;
 }
