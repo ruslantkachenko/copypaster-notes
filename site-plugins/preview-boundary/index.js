@@ -36,6 +36,15 @@ function markPreviewBoundary(source) {
   return lines.join("\n");
 }
 
+// Captures the original Markdown before the boundary so the homepage can
+// render embeds such as ![[embedded/image.gif]], which plain-text metadata loses.
+export function extractManualPreviewSource(source) {
+  const text = String(source ?? "");
+  const markerIndex = text.indexOf(PREVIEW_BOUNDARY_TOKEN);
+  if (markerIndex < 0) return null;
+  return text.slice(0, markerIndex).trimEnd() + "\n" + PREVIEW_BOUNDARY_TOKEN;
+}
+
 export function removePreviewBoundary(node) {
   if (!node || typeof node !== "object" || !Array.isArray(node.children)) return;
 
@@ -56,10 +65,20 @@ export default function PreviewBoundary() {
     textTransform(_ctx, source) {
       return markPreviewBoundary(source);
     },
+    markdownPlugins() {
+      return [
+        () => (_tree, file) => {
+          const previewSource = extractManualPreviewSource(file.value);
+          if (previewSource !== null) {
+            file.data.manualPreviewSource = previewSource;
+          }
+        },
+      ];
+    },
     htmlPlugins() {
       return [
         () => (tree) => {
-          // Description (order 70) has already copied the marker into file.data.text.
+          // Description (order 70) has already copied the boundary token into file.data.text.
           // Remove it from the visible article tree so readers never see the marker.
           removePreviewBoundary(tree);
         },
