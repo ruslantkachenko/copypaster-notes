@@ -7,12 +7,13 @@ import {
 } from "./index.js";
 
 test("converts a standalone more marker into a text token before Markdown parsing", () => {
-  const result = markPreviewBoundary("Перший абзац.\\n<!-- more -->\\nДругий абзац.");
-  assert.equal(result, "Перший абзац.\\n" + PREVIEW_BOUNDARY_TOKEN + "\\nДругий абзац.");
+  const source = ["Перший абзац.", "<!-- more -->", "Другий абзац."].join("\n");
+  const expected = ["Перший абзац.", PREVIEW_BOUNDARY_TOKEN, "Другий абзац."].join("\n");
+  assert.equal(markPreviewBoundary(source), expected);
 });
 
 test("does not convert a more marker inside fenced code", () => {
-  const source = "~~~md\\n<!-- more -->\\n~~~\\nТекст";
+  const source = ["~~~md", "<!-- more -->", "~~~", "Текст"].join("\n");
   assert.equal(markPreviewBoundary(source), source);
 });
 
