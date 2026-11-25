@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./index.js"
+    ".": "./index.js",
+    "./components": "./components.js"
   },
   "peerDependencies": {
     "preact": "^10.0.0",
@@ -16,9 +17,22 @@
     "description": "Custom home page with a chronological feed of published notes.",
     "version": "0.1.0",
     "quartzVersion": ">=5.0.0",
-    "category": "pageType",
+    "category": [
+      "pageType",
+      "component"
+    ],
     "defaultOrder": 100,
     "defaultEnabled": true,
-    "defaultOptions": {}
+    "defaultOptions": {},
+    "components": {
+      "BlogTagFilter": {
+        "name": "BlogTagFilter",
+        "displayName": "Copypaster Blog Tag Filter",
+        "description": "Interactive multi-tag filter for the published post feed.",
+        "version": "0.1.0",
+        "defaultPosition": "right",
+        "defaultPriority": 10
+      }
+    }
   }
 }
