@@ -86,13 +86,14 @@ jobs:
       - name: Verify GIF attachment path
         working-directory: quartz-engine
         run: |
-          HTML_FILE="$(grep -RIl 'Эта гифка путешествует по сети уже давно' public --include='*.html' | head -n 1)"
+          HTML_FILE="$(grep -RIl 'Как будто, я чувствую звуковую волну.' public --include='*.html' | head -n 1)"
           if [[ -z "$HTML_FILE" ]]; then
-            echo "Could not find the published GIF article HTML."
+            echo "Could not find the full GIF article HTML."
             exit 1
           fi
           if ! grep -q 'unknown_filename' "$HTML_FILE"; then
-            echo "The GIF file reference was not found in the article HTML."
+            echo "The GIF file reference was not found in the full article HTML."
+            grep -o '.\\{0,120\\}Evernote/Published.\\{0,180\\}' "$HTML_FILE" | head -n 3 || true
             exit 1
           fi
           if grep -q 'Evernote/Published' "$HTML_FILE"; then
