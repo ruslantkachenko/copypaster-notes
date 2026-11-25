@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -67,6 +67,8 @@ jobs:
           rm -rf quartz-engine/content
           ln -s "$GITHUB_WORKSPACE/content" quartz-engine/content
           cp quartz.config.yaml quartz.lock.json quartz-engine/
+          mkdir -p quartz-engine/quartz/styles
+          cp quartz/styles/custom.scss quartz-engine/quartz/styles/custom.scss
           cp -R site-plugins quartz-engine/
 
       - name: Install dependencies
@@ -129,6 +131,19 @@ jobs:
             exit 1
           fi
           echo "The short image wikilink resolves to the embedded attachment."
+
+      - name: Verify compact note property styles
+        working-directory: quartz-engine
+        run: |
+          if ! grep -R -q 'note-properties-header' public --include='*.css'; then
+            echo "The custom note properties styles were not included in the generated CSS."
+            exit 1
+          fi
+          if ! grep -R -q 'note-properties-tags' public --include='*.css'; then
+            echo "The custom note tag styles were not included in the generated CSS."
+            exit 1
+          fi
+          echo "Compact note property styles are present in the generated site."
 
       - uses: actions/upload-pages-artifact@v5
         with:

@@ -1,0 +1,87 @@
+@use "./variables.scss" as *;
+
+/* Compact frontmatter tags on published article pages */
+.note-properties {
+  margin: 0 0 0.7rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  font-family: var(--bodyFont) !important;
+  font-size: 1rem !important;
+}
+
+.note-properties > .note-properties-header {
+  display: none !important;
+}
+
+.note-properties > .note-properties-table {
+  width: auto !important;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  table-layout: auto !important;
+}
+
+.note-properties .note-properties-row {
+  border: 0 !important;
+}
+
+.note-properties .note-properties-key,
+.note-properties .note-properties-value {
+  padding: 0 !important;
+  border: 0 !important;
+  vertical-align: middle;
+}
+
+.note-properties .note-properties-key {
+  width: auto !important;
+  padding-right: 0.55rem !important;
+  color: var(--darkgray) !important;
+  font-family: var(--bodyFont) !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  white-space: nowrap;
+}
+
+.note-properties .note-properties-key::after {
+  content: ":";
+}
+
+.note-properties .note-properties-value {
+  width: auto !important;
+}
+
+.note-properties .note-properties-tags {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.note-properties .note-properties-separator {
+  display: none !important;
+}
+
+.note-properties .note-properties-tags .tag-link {
+  display: inline-flex !important;
+  align-items: center;
+  margin: 0 !important;
+  padding: 0.16rem 0.65rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--lightgray) !important;
+  color: var(--dark) !important;
+  font-family: var(--bodyFont) !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  line-height: 1.5;
+  text-decoration: none !important;
+}
+
+.note-properties .note-properties-tags .tag-link:hover {
+  background: var(--gray) !important;
+  color: var(--dark) !important;
+}
