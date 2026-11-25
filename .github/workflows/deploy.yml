@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths]
   workflow_dispatch:
 
 permissions:
@@ -124,6 +124,11 @@ jobs:
             exit 1
           fi
           echo "The image before the manual preview marker is present in the homepage preview."
+          if ! grep -Fq './embedded/светофор.jpg' "$HOME_HTML"; then
+            echo "The short wikilink for the traffic-light image did not resolve to embedded/."
+            exit 1
+          fi
+          echo "The short image wikilink resolves to the embedded attachment."
 
       - uses: actions/upload-pages-artifact@v5
         with:
