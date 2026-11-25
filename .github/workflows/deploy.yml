@@ -119,6 +119,11 @@ jobs:
             exit 1
           fi
           echo "Homepage excerpt stops at the manual preview marker."
+          if ! grep -Fq 'blog-post-excerpt-image' "$HOME_HTML" || ! grep -Fq 'unknown_filename' "$HOME_HTML"; then
+            echo "The image before the manual preview marker is missing from the homepage preview."
+            exit 1
+          fi
+          echo "The image before the manual preview marker is present in the homepage preview."
 
       - uses: actions/upload-pages-artifact@v5
         with:
