@@ -155,6 +155,20 @@ jobs:
           fi
           echo "Homepage preview links explicitly disable hover popovers."
 
+      - name: Verify sidebar labels
+        working-directory: quartz-engine
+        run: |
+          HOME_HTML="public/index.html"
+          if ! grep -Fq 'Купа постів' "$HOME_HTML"; then
+            echo "The Explorer sidebar label was not updated."
+            exit 1
+          fi
+          if ! grep -Fq 'Хмара тегів' "$HOME_HTML"; then
+            echo "The tag cloud heading was not updated."
+            exit 1
+          fi
+          echo "Both custom sidebar labels are present."
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: quartz-engine/public
