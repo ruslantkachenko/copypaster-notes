@@ -309,20 +309,29 @@ layout:
         beforeBody: []
         left: []
         right: []
-    content: {}
+    content:
+      exclude:
+        - blog-home
     blog-home:
       exclude:
         - content-meta
         - note-properties
+        - recent-notes
     folder:
       exclude:
         - reader-mode
+        - blog-home
       positions:
         right: []
     tag:
       exclude:
         - reader-mode
+        - blog-home
       positions:
         right: []
-    canvas: {}
-    bases: {}
+    canvas:
+      exclude:
+        - blog-home
+    bases:
+      exclude:
+        - blog-home
