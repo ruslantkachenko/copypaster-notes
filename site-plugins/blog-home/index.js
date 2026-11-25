@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { htmlToJsx } from "@quartz-community/utils/jsx";
-import { resolveRelative, slugTag, slugifyFilePath } from "@quartz-community/utils/path";
+import { resolveRelative, slugTag, slugifyFilePath, transformLink } from "@quartz-community/utils/path";
 
 const INTERNAL_TAGS = new Set(["published", "note"]);
 const PREVIEW_MARKER = /^\s*<!--\s*more\s*-->\s*$/i;
@@ -194,7 +194,16 @@ function plainExcerpt(page) {
   return text.length > 320 ? text.slice(0, 317).trimEnd() + "…" : text;
 }
 
-function renderManualPreview(blocks, homeSlug) {
+export function resolvePreviewAssetUrl(homeSlug, target, allSlugs) {
+  // Match Quartz's CrawlLinks resolver: short wikilinks can refer to files
+  // inside embedded/ (or another folder) without naming that folder.
+  return transformLink(homeSlug, target, {
+    strategy: "shortest",
+    allSlugs,
+  });
+}
+
+function renderManualPreview(blocks, homeSlug, allSlugs) {
   const children = [];
 
   blocks.forEach((block, index) => {
@@ -202,7 +211,7 @@ function renderManualPreview(blocks, homeSlug) {
       children.push(
         h("img", {
           class: "blog-post-excerpt-image",
-          src: resolveRelative(homeSlug, block.target),
+          src: resolvePreviewAssetUrl(homeSlug, block.target, allSlugs),
           alt: block.alt,
           loading: "lazy",
           key: "image-" + index,
@@ -230,7 +239,7 @@ function renderManualPreview(blocks, homeSlug) {
     : null;
 }
 
-function renderPreview(page, homeSlug) {
+function renderPreview(page, homeSlug, allSlugs) {
   // Use the original Markdown captured before Quartz converts embeds to plain text.
   // This preserves image/GIF links in the manual preview as well as their order.
   const sources = [page.manualPreviewSource, page.text, page.description];
@@ -238,7 +247,7 @@ function renderPreview(page, homeSlug) {
   for (const source of sources) {
     if (typeof source !== "string") continue;
     const manual = parseManualPreview(source);
-    if (manual !== null) return renderManualPreview(manual, homeSlug);
+    if (manual !== null) return renderManualPreview(manual, homeSlug, allSlugs);
   }
 
   const excerpt = plainExcerpt(page);
@@ -253,7 +262,7 @@ function formatDate(date, locale) {
   }).format(date);
 }
 
-function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
+function BlogHomeBody({ ctx, fileData, tree, allFiles, cfg }) {
   const intro = htmlToJsx(tree);
   const posts = allFiles
     .filter((page) => page.slug !== "index" && isPublished(page))
@@ -265,7 +274,7 @@ function BlogHomeBody({ fileData, tree, allFiles, cfg }) {
     const title = page.frontmatter?.title ?? "Без назви";
     const href = resolveRelative(fileData.slug, page.slug);
     const tags = pageTags(page).filter((tag) => !INTERNAL_TAGS.has(tag.toLowerCase()));
-    const preview = renderPreview(page, fileData.slug);
+    const preview = renderPreview(page, fileData.slug, ctx.allSlugs ?? []);
 
     return h(
       "article",
