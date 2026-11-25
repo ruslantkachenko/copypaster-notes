@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -67,6 +67,8 @@ jobs:
           rm -rf quartz-engine/content
           ln -s "$GITHUB_WORKSPACE/content" quartz-engine/content
           cp quartz.config.yaml quartz.lock.json quartz-engine/
+          mkdir -p quartz-engine/quartz/styles
+          cp quartz/styles/custom.scss quartz-engine/quartz/styles/custom.scss
           cp -R site-plugins quartz-engine/
 
       - name: Install dependencies
