@@ -63,3 +63,14 @@ test("a marker inside a fenced code example is ignored", () => {
     null,
   );
 });
+
+test("image attachment paths match Quartz's published slugified filenames", () => {
+  const result = parseManualPreview([
+    "![[Evernote/Published/embedded/unknown_filename 11.gif]]",
+    "<!-- more -->",
+    "Текст після маркера.",
+  ].join("\n"));
+  assert.deepEqual(result, [
+    { type: "image", target: "embedded/unknown_filename-11.gif", alt: "unknown_filename 11.gif" },
+  ]);
+});
