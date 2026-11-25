@@ -281,7 +281,7 @@ function BlogHomeBody({ ctx, fileData, tree, allFiles, cfg }) {
       { class: "blog-post-preview", "data-blog-tags": JSON.stringify(tags), key: page.slug },
       [
         h("p", { class: "blog-post-date" }, formatDate(date, cfg.locale)),
-        h("h2", { class: "blog-post-title" }, h("a", { href, class: "internal" }, title)),
+        h("h2", { class: "blog-post-title" }, h("a", { href, class: "internal", "data-no-popover": "true" }, title)),
         preview,
         tags.length
           ? h(
@@ -300,7 +300,7 @@ function BlogHomeBody({ ctx, fileData, tree, allFiles, cfg }) {
               ),
             )
           : null,
-        h("a", { class: "blog-read-more internal", href }, "Читати далі →"),
+        h("a", { class: "blog-read-more internal", href, "data-no-popover": "true" }, "Читати далі →"),
       ],
     );
   });
