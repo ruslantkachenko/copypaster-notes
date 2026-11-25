@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, blog-layout-prototype]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-\${{ hashFiles('quartz.lock.json') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -67,6 +67,7 @@ jobs:
           rm -rf quartz-engine/content
           ln -s "$GITHUB_WORKSPACE/content" quartz-engine/content
           cp quartz.config.yaml quartz.lock.json quartz-engine/
+          cp -R site-plugins quartz-engine/
 
       - name: Install dependencies
         if: steps.quartz-deps-cache.outputs.cache-hit != 'true'
@@ -87,6 +88,7 @@ jobs:
           path: quartz-engine/public
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
