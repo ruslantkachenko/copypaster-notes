@@ -228,7 +228,12 @@ function renderManualPreview(blocks, homeSlug) {
 }
 
 function renderPreview(page, homeSlug) {
-  for (const source of [page.text, page.description]) {
+  // Use the original Markdown captured before Quartz converts embeds to plain text.
+  // This preserves image/GIF links in the manual preview as well as their order.
+  const sources = [page.manualPreviewSource, page.text, page.description];
+
+  for (const source of sources) {
+    if (typeof source !== "string") continue;
     const manual = parseManualPreview(source);
     if (manual !== null) return renderManualPreview(manual, homeSlug);
   }
