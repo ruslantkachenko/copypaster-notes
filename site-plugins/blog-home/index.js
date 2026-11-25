@@ -4,6 +4,7 @@ import { resolveRelative, slugTag } from "@quartz-community/utils/path";
 
 const INTERNAL_TAGS = new Set(["published", "note"]);
 const PREVIEW_MARKER = /^\s*<!--\s*more\s*-->\s*$/i;
+const PREVIEW_BOUNDARY_TOKEN = "COPypasterManualPreviewBoundary9F61D2";
 const PUBLISHED_SOURCE_PREFIX = "Evernote/Published/";
 
 function pageTags(page) {
@@ -27,21 +28,31 @@ function stripFrontmatter(source) {
 }
 
 function findManualPreviewMarker(source) {
-  const lines = String(source ?? "").split(/(?<=\n)/);
+  const text = String(source ?? "");
+  // The transformer token survives Quartz's plain-text extraction unchanged.
+  const tokenIndex = text.indexOf(PREVIEW_BOUNDARY_TOKEN);
+  if (tokenIndex >= 0) return tokenIndex;
+
+  // Keep direct Markdown parsing available for unit tests and fallback cases.
+  const lines = text.split("\n");
   let offset = 0;
   let fenceCharacter = null;
   let fenceLength = 0;
 
   for (const lineWithEnding of lines) {
-    const line = lineWithEnding.replace(/\r?\n$/, "");
-    const fence = line.match(/^\s*(\x60{3,}|~{3,})/);
+    const line = lineWithEnding.replace(/\r$/, "");
+    const trimmed = line.trimStart();
+    const markerCharacter = trimmed[0];
+    let markerLength = 0;
+    if (markerCharacter === "`" || markerCharacter === "~") {
+      while (trimmed[markerLength] === markerCharacter) markerLength += 1;
+    }
 
-    if (fence) {
-      const marker = fence[1];
+    if (markerLength >= 3) {
       if (fenceCharacter === null) {
-        fenceCharacter = marker[0];
-        fenceLength = marker.length;
-      } else if (marker[0] === fenceCharacter && marker.length >= fenceLength) {
+        fenceCharacter = markerCharacter;
+        fenceLength = markerLength;
+      } else if (markerCharacter === fenceCharacter && markerLength >= fenceLength) {
         fenceCharacter = null;
         fenceLength = 0;
       }
@@ -49,7 +60,7 @@ function findManualPreviewMarker(source) {
       return offset;
     }
 
-    offset += lineWithEnding.length;
+    offset += lineWithEnding.length + 1;
   }
 
   return -1;

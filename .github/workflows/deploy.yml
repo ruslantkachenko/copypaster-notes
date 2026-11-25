@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: Test manual blog previews
         working-directory: quartz-engine
-        run: node --test site-plugins/blog-home/preview.test.js
+        run: node --test site-plugins/blog-home/preview.test.js site-plugins/preview-boundary/preview-boundary.test.js
 
       - name: Build site
         working-directory: quartz-engine
@@ -105,6 +105,20 @@ jobs:
             exit 1
           fi
           echo "GIF attachment link was normalized successfully: $HTML_FILE"
+
+      - name: Verify manual preview boundary
+        working-directory: quartz-engine
+        run: |
+          HOME_HTML="public/index.html"
+          if ! grep -Fq 'Сразу оговорюсь' "$HOME_HTML"; then
+            echo "The expected text before the manual preview marker is missing."
+            exit 1
+          fi
+          if grep -Fq 'Вы, крепкий' "$HOME_HTML"; then
+            echo "Text after the manual preview marker leaked into the homepage excerpt."
+            exit 1
+          fi
+          echo "Homepage excerpt stops at the manual preview marker."
 
       - uses: actions/upload-pages-artifact@v5
         with:
