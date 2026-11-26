@@ -73,6 +73,12 @@ test("captures both the full note and manual preview prefix when a marker exists
   assert.equal(file.data.previewSource, file.value);
   assert.equal(
     file.data.manualPreviewSource,
-    ["![[embedded/cover.jpg]]", PREVIEW_BOUNDARY_TOKEN].join("\n"),
+    [
+      "---",
+      "title: Manual preview",
+      "---",
+      "![[embedded/cover.jpg]]",
+      PREVIEW_BOUNDARY_TOKEN,
+    ].join("\n"),
   );
 });
