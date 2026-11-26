@@ -212,11 +212,20 @@ jobs:
           }
           console.log("The unpublished note is absent from contentIndex.json.");
           NODE
-          if ! find public -type f -iname '*госбюджет*.html' | grep -q .; then
-            echo "The note HTML was not emitted; unlisting should hide it from discovery, not delete the page."
-            exit 1
+          NOTE_SOURCE="$(find "$GITHUB_WORKSPACE/content" -type f -iname '*госбюджет*.md' -print -quit)"
+          if [[ -n "$NOTE_SOURCE" ]]; then
+            if ! find public -type f -iname '*госбюджет*.html' | grep -q .; then
+              echo "The unpublished note source exists, but its HTML page was not emitted."
+              exit 1
+            fi
+            echo "The unpublished note remains available by direct URL."
+          else
+            if find public -type f -iname '*госбюджет*.html' | grep -q .; then
+              echo "The deleted note still has an HTML page in the generated site."
+              exit 1
+            fi
+            echo "The deleted note is absent from the generated site."
           fi
-          echo "The note HTML remains available by direct URL."
 
       - uses: actions/upload-pages-artifact@v5
         with:
