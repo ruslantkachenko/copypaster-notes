@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors]
   workflow_dispatch:
 
 permissions:
@@ -158,6 +158,23 @@ jobs:
             exit 1
           fi
           echo "Homepage preview links explicitly disable hover popovers."
+
+      - name: Verify tag cloud chip colors
+        working-directory: quartz-engine
+        run: |
+          if ! grep -R -Fq '.blog-tag-filter__button.is-active' public --include='*.html' --include='*.css'; then
+            echo "Tag cloud chip styles are missing from the generated site."
+            exit 1
+          fi
+          if ! grep -R -Fq 'background: var(--lightgray)' public --include='*.html' --include='*.css'; then
+            echo "Tag cloud chips are not using the same light-gray background as post tags."
+            exit 1
+          fi
+          if ! grep -R -Fq 'font-size: 0.88rem' public --include='*.html' --include='*.css'; then
+            echo "Tag cloud chips are not using the post tag font size."
+            exit 1
+          fi
+          echo "Tag cloud chip colors and typography match post tags."
 
       - name: Verify sidebar labels
         working-directory: quartz-engine
