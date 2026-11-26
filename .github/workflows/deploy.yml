@@ -81,9 +81,9 @@ jobs:
         working-directory: quartz-engine
         run: npx quartz plugin install
 
-      - name: Test manual blog previews
+      - name: Test manual blog previews and tag cloud styles
         working-directory: quartz-engine
-        run: node --test site-plugins/blog-home/preview.test.js site-plugins/preview-boundary/preview-boundary.test.js
+        run: node --test site-plugins/blog-home/preview.test.js site-plugins/blog-home/components.test.js site-plugins/preview-boundary/preview-boundary.test.js
 
       - name: Test published visibility
         working-directory: quartz-engine
@@ -158,23 +158,6 @@ jobs:
             exit 1
           fi
           echo "Homepage preview links explicitly disable hover popovers."
-
-      - name: Verify tag cloud chip colors
-        working-directory: quartz-engine
-        run: |
-          if ! grep -R -Fq '.blog-tag-filter__button.is-active' public --include='*.html' --include='*.css'; then
-            echo "Tag cloud chip styles are missing from the generated site."
-            exit 1
-          fi
-          if ! grep -R -Fq 'background: var(--lightgray)' public --include='*.html' --include='*.css'; then
-            echo "Tag cloud chips are not using the same light-gray background as post tags."
-            exit 1
-          fi
-          if ! grep -R -Fq 'font-size: 0.88rem' public --include='*.html' --include='*.css'; then
-            echo "Tag cloud chips are not using the post tag font size."
-            exit 1
-          fi
-          echo "Tag cloud chip colors and typography match post tags."
 
       - name: Verify sidebar labels
         working-directory: quartz-engine
