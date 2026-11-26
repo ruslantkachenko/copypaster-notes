@@ -134,6 +134,9 @@ plugins:
     enabled: true
     options: {}
     order: 45
+  - source: ./site-plugins/published-visibility
+    enabled: true
+    order: 46
   - source: github:quartz-community/encrypted-pages
     enabled: true
     options:
