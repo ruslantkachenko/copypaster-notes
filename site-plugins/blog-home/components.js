@@ -102,25 +102,29 @@ export function BlogTagFilter() {
   align-items: center;
   gap: 0.4rem;
   max-width: 100%;
-  padding: 0.28rem 0.65rem;
+  margin: 0;
+  padding: 0.16rem 0.65rem;
   border: 0;
   border-radius: 999px;
-  color: var(--darkgray);
-  background: var(--highlight);
-  font: inherit;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  color: var(--dark);
+  background: var(--lightgray);
+  font-family: var(--bodyFont);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.5;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, outline-color 0.15s ease;
 }
 .blog-tag-filter__button:hover {
   color: var(--dark);
-  background: var(--lightgray);
+  background: var(--gray);
 }
 .blog-tag-filter__button.is-active {
-  color: var(--light);
-  background: var(--secondary);
+  color: var(--dark);
+  background: var(--lightgray);
+  outline: 1px solid var(--darkgray);
+  outline-offset: 1px;
 }
 .blog-tag-filter__count {
   color: inherit;

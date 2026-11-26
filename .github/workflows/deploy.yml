@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors]
   workflow_dispatch:
 
 permissions:
@@ -81,9 +81,9 @@ jobs:
         working-directory: quartz-engine
         run: npx quartz plugin install
 
-      - name: Test manual blog previews
+      - name: Test manual blog previews and tag cloud styles
         working-directory: quartz-engine
-        run: node --test site-plugins/blog-home/preview.test.js site-plugins/preview-boundary/preview-boundary.test.js
+        run: node --test site-plugins/blog-home/preview.test.js site-plugins/blog-home/components.test.js site-plugins/preview-boundary/preview-boundary.test.js
 
       - name: Test published visibility
         working-directory: quartz-engine
