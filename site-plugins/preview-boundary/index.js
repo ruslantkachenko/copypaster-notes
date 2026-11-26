@@ -45,6 +45,19 @@ export function extractManualPreviewSource(source) {
   return text.slice(0, markerIndex).trimEnd() + "\n" + PREVIEW_BOUNDARY_TOKEN;
 }
 
+export function capturePreviewSources(file) {
+  if (!file || typeof file !== "object") return;
+  if (!file.data || typeof file.data !== "object") file.data = {};
+
+  const source = String(file.value ?? "");
+  file.data.previewSource = source;
+
+  const manualPreviewSource = extractManualPreviewSource(source);
+  if (manualPreviewSource !== null) {
+    file.data.manualPreviewSource = manualPreviewSource;
+  }
+}
+
 export function removePreviewBoundary(node) {
   if (!node || typeof node !== "object" || !Array.isArray(node.children)) return;
 
@@ -68,12 +81,7 @@ export default function PreviewBoundary() {
     markdownPlugins() {
       return [
         () => (_tree, file) => {
-          const source = String(file.value ?? "");
-          file.data.previewSource = source;
-          const previewSource = extractManualPreviewSource(source);
-          if (previewSource !== null) {
-            file.data.manualPreviewSource = previewSource;
-          }
+          capturePreviewSources(file);
         },
       ];
     },
