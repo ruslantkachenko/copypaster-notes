@@ -85,3 +85,9 @@
   background: var(--gray) !important;
   color: var(--dark) !important;
 }
+
+
+/* Keep the left title slot on the homepage, but hide the duplicate text. */
+body[data-slug="index"] .page-title {
+  visibility: hidden;
+}
