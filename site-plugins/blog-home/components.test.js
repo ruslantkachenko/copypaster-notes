@@ -1,16 +1,15 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
-import { BlogTagFilter } from "./components.js";
 
-const TagFilter = BlogTagFilter();
-const css = TagFilter.css;
+const source = fs.readFileSync(new URL("./components.js", import.meta.url), "utf8");
 
 function ruleBody(selector) {
-  const start = css.indexOf(selector);
-  const open = css.indexOf("{", start);
-  const close = css.indexOf("}", open);
+  const start = source.indexOf(selector);
+  const open = source.indexOf("{", start);
+  const close = source.indexOf("}", open);
   assert.ok(start >= 0 && open > start && close > open, "Missing CSS rule: " + selector);
-  return css.slice(open + 1, close);
+  return source.slice(open + 1, close);
 }
 
 test("tag cloud chips use the same light-gray palette as tags in full posts", () => {
