@@ -100,28 +100,205 @@ function normalizePublishedAssetPath(target) {
   return slugifyFilePath(path);
 }
 
-function imageBlockFromToken(match) {
-  let target;
-  let alt;
+function videoEmbedUrl(target) {
+  try {
+    const url = new URL(target);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
 
-  if (match.startsWith("![[")) {
-    const value = match.slice(3, -2);
-    const separator = value.indexOf("|");
-    target = separator === -1 ? value : value.slice(0, separator);
-    alt = separator === -1 ? "" : value.slice(separator + 1).trim();
-  } else {
-    const parsed = match.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if (!parsed) return null;
-    alt = parsed[1];
-    target = parsed[2].trim();
+    if (host === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      if (id) return "https://www.youtube.com/embed/" + id;
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+      const id =
+        url.searchParams.get("v") ||
+        url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1];
+      const playlist = url.searchParams.get("list");
+      if (id && playlist) return "https://www.youtube.com/embed/" + id + "?list=" + encodeURIComponent(playlist);
+      if (id) return "https://www.youtube.com/embed/" + id;
+      if (playlist) return "https://www.youtube.com/embed/videoseries?list=" + encodeURIComponent(playlist);
+    }
+
+    if (host === "vimeo.com") {
+      const id = url.pathname.split("/").filter(Boolean).pop();
+      if (id && /^\d+$/.test(id)) return "https://player.vimeo.com/video/" + id;
+    }
+  } catch {
+    return null;
   }
 
-  const originalPath = String(target ?? "").trim().replace(/\\/g, "/");
-  const originalFileName = originalPath.split("/").pop() ?? originalPath;
-  const path = normalizePublishedAssetPath(target);
-  if (!/\.(?:png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(path)) return null;
+  return null;
+}
 
-  return { type: "image", target: path, alt: alt || originalFileName };
+function htmlAttributes(source) {
+  const attributes = {};
+  const pattern = /([a-zA-Z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g;
+  let match;
+  while ((match = pattern.exec(source)) !== null) {
+    attributes[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+  }
+  return attributes;
+}
+
+function mediaBlockFromTarget(target, alt = "", explicitEmbed = false) {
+  const cleanTarget = String(target ?? "").trim();
+  if (!cleanTarget) return null;
+
+  const providerUrl = videoEmbedUrl(cleanTarget);
+  if (providerUrl) {
+    return { type: "iframe", target: providerUrl, alt: alt || "Вбудоване відео", mediaKind: "video" };
+  }
+
+  const isExternal = /^https?:\/\//i.test(cleanTarget);
+  if (isExternal && explicitEmbed) {
+    return { type: "iframe", target: cleanTarget, alt: alt || "Вбудований матеріал" };
+  }
+
+  const pathForExtension = cleanTarget.split(/[?#]/)[0];
+  const extension = pathForExtension.slice(pathForExtension.lastIndexOf(".")).toLowerCase();
+  const originalPath = cleanTarget.replace(/\\/g, "/");
+  const originalFileName = originalPath.split("/").pop() ?? originalPath;
+  const publishedPath = isExternal ? cleanTarget : normalizePublishedAssetPath(cleanTarget);
+
+  if (/\.(?:png|jpe?g|gif|webp|avif|bmp|jxl)$/i.test(extension)) {
+    return { type: "image", target: publishedPath, alt: alt || originalFileName };
+  }
+  if (/\.(?:mp4|webm|ogv|avi|mov|flv|wmv|mkv|mpg|mpeg|3gp|m4v)$/i.test(extension)) {
+    return { type: "video", target: publishedPath, alt: alt || originalFileName };
+  }
+  if (/\.(?:mp3|wav|m4a|ogg|oga|aac|flac)$/i.test(extension)) {
+    return { type: "audio", target: publishedPath, alt: alt || originalFileName };
+  }
+  if (/\.pdf$/i.test(extension)) {
+    return { type: "iframe", target: publishedPath, alt: alt || originalFileName, mediaKind: "document" };
+  }
+  if (/\.svg$/i.test(extension)) {
+    return { type: "object", target: publishedPath, alt: alt || originalFileName, mediaType: "image/svg+xml" };
+  }
+
+  // A normal Markdown image can be hosted at an extension-less URL.
+  if (isExternal && !explicitEmbed) {
+    return { type: "image", target: cleanTarget, alt: alt || originalFileName };
+  }
+
+  return null;
+}
+
+function mediaBlockFromHtml(match) {
+  const openingTag = match.match(/^<(iframe|video|audio|object|embed)\b([^>]*)>/i);
+  if (!openingTag) return null;
+
+  const tag = openingTag[1].toLowerCase();
+  const attrs = htmlAttributes(openingTag[2]);
+  let target = attrs.src || attrs.data;
+
+  if (!target && tag === "video") {
+    const sourceTag = match.match(/<source\b([^>]*)>/i);
+    if (sourceTag) {
+      const sourceAttrs = htmlAttributes(sourceTag[1]);
+      target = sourceAttrs.src;
+    }
+  }
+
+  if (!target) return null;
+
+  const providerUrl = videoEmbedUrl(target);
+  if (providerUrl) target = providerUrl;
+
+  const type = tag === "object" ? "object" : tag === "embed" ? "embed" : tag;
+  return {
+    type,
+    target: /^https?:\/\//i.test(target) || target.startsWith("/")
+      ? target
+      : normalizePublishedAssetPath(target),
+    alt: attrs.title || attrs.alt || "Вбудований матеріал",
+    mediaType: attrs.type,
+    attributes: attrs,
+    mediaKind: tag === "iframe" && /youtube|vimeo/i.test(target) ? "video" : undefined,
+  };
+}
+
+function mediaBlockFromToken(match) {
+  const token = String(match ?? "").trim();
+
+  if (token.startsWith("<")) return mediaBlockFromHtml(token);
+
+  if (token.startsWith("![[")) {
+    const value = token.slice(3, -2);
+    const separator = value.indexOf("|");
+    const target = separator === -1 ? value : value.slice(0, separator);
+    const alt = separator === -1 ? "" : value.slice(separator + 1).trim();
+    return mediaBlockFromTarget(target, alt, true);
+  }
+
+  const parsed = token.match(/^!\[([^\]]*)\]\((<[^>]+>|[^)]+)\)$/);
+  if (!parsed) return null;
+
+  const alt = parsed[1];
+  const rawTarget = parsed[2].replace(/^<|>$/g, "").trim();
+  return mediaBlockFromTarget(rawTarget, alt, false);
+}
+
+function extractLeadingMediaToken(source) {
+  const text = String(source ?? "").trimStart();
+
+  const wikilink = text.match(/^!\[\[[^\]]+\]\]/);
+  if (wikilink) return { token: wikilink[0], length: wikilink[0].length };
+
+  const markdownImage = text.match(/^!\[[^\]]*\]\((?:<[^>]+>|[^)]+)\)/);
+  if (markdownImage) return { token: markdownImage[0], length: markdownImage[0].length };
+
+  const htmlStart = text.match(/^<(iframe|video|audio|object|embed)\b/i);
+  if (htmlStart) {
+    const tag = htmlStart[1];
+    const openEnd = text.indexOf(">");
+    if (openEnd < 0) return null;
+    const opening = text.slice(0, openEnd + 1);
+    if (/\/\s*>$/.test(opening)) return { token: opening, length: opening.length };
+
+    const closePattern = new RegExp("</" + tag + "\\s*>", "i");
+    const rest = text.slice(openEnd + 1);
+    const close = rest.match(closePattern);
+    if (close && close.index !== undefined) {
+      const length = openEnd + 1 + close.index + close[0].length;
+      return { token: text.slice(0, length), length };
+    }
+
+    return { token: opening, length: opening.length };
+  }
+
+  return null;
+}
+
+function hasMeaningfulRemainder(source) {
+  return String(source ?? "")
+    .replace(new RegExp(PREVIEW_BOUNDARY_TOKEN, "g"), "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/%%[\s\S]*?%%/g, "")
+    .trim().length > 0;
+}
+
+/**
+ * Detects a media-first note without an explicit manual marker.
+ * The first media item becomes the complete teaser; any later content is left
+ * for the full article. Text-first notes continue to use the normal excerpt.
+ */
+export function parseAutomaticMediaPreview(source) {
+  const body = stripFrontmatter(source).split(PREVIEW_BOUNDARY_TOKEN)[0];
+  const leading = extractLeadingMediaToken(body);
+  if (!leading) return null;
+
+  const media = mediaBlockFromToken(leading.token);
+  if (!media) return null;
+
+  const remainder = body.trimStart().slice(leading.length);
+  const hasMoreContent = hasMeaningfulRemainder(remainder);
+
+  return {
+    blocks: [media],
+    complete: !hasMoreContent,
+  };
 }
 
 /**
@@ -137,7 +314,7 @@ export function parseManualPreview(source) {
   if (!previewSource) return [];
 
   const blocks = [];
-  const tokenPattern = /!\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]+\)/g;
+  const tokenPattern = /!\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]+\)|<(iframe|video|audio|object|embed)\b[^>]*>[\s\S]*?<\/\1\s*>|<(?:iframe|video|audio|object|embed)\b[^>]*\/?\s*>/gi;
   let previousIndex = 0;
   let match;
 
@@ -156,9 +333,9 @@ export function parseManualPreview(source) {
   while ((match = tokenPattern.exec(previewSource)) !== null) {
     addText(previewSource.slice(previousIndex, match.index));
 
-    const image = imageBlockFromToken(match[0]);
-    if (image) {
-      blocks.push(image);
+    const media = mediaBlockFromToken(match[0]);
+    if (media) {
+      blocks.push(media);
     } else {
       const value = match[0].startsWith("![[" ) ? match[0].slice(3, -2) : match[0];
       const fallback = value.split("|").pop()?.trim() ?? "";
@@ -203,20 +380,98 @@ export function resolvePreviewAssetUrl(homeSlug, target, allSlugs) {
   });
 }
 
+function resolvePreviewMediaSrc(homeSlug, target, allSlugs) {
+  const value = String(target ?? "");
+  if (/^(?:https?:)?\/\//i.test(value) || value.startsWith("/") || value.startsWith("data:")) {
+    return value;
+  }
+  return resolvePreviewAssetUrl(homeSlug, value, allSlugs);
+}
+
+function renderMediaBlock(block, homeSlug, allSlugs, key) {
+  const src = resolvePreviewMediaSrc(homeSlug, block.target, allSlugs);
+  const attrs = block.attributes ?? {};
+
+  if (block.type === "image") {
+    return h("img", {
+      class: "blog-post-excerpt-image",
+      src,
+      alt: block.alt,
+      loading: "lazy",
+      key,
+    });
+  }
+
+  if (block.type === "video") {
+    return h("video", {
+      class: "blog-post-excerpt-video",
+      src,
+      controls: true,
+      preload: "metadata",
+      title: block.alt,
+      key,
+    });
+  }
+
+  if (block.type === "audio") {
+    return h("audio", {
+      class: "blog-post-excerpt-audio",
+      src,
+      controls: true,
+      preload: "metadata",
+      title: block.alt,
+      key,
+    });
+  }
+
+  if (block.type === "iframe") {
+    const width = attrs.width || undefined;
+    const height = attrs.height || undefined;
+    return h("iframe", {
+      class: "blog-post-excerpt-iframe" + (block.mediaKind === "document" ? " blog-post-excerpt-iframe-document" : ""),
+      src,
+      title: attrs.title || block.alt || "Вбудований матеріал",
+      width,
+      height,
+      allow: attrs.allow || "autoplay; encrypted-media; picture-in-picture; fullscreen",
+      allowFullScreen: attrs.allowfullscreen !== undefined || block.mediaKind === "video",
+      loading: "lazy",
+      frameBorder: attrs.frameborder || "0",
+      referrerPolicy: "strict-origin-when-cross-origin",
+      key,
+    });
+  }
+
+  if (block.type === "object") {
+    return h("object", {
+      class: "blog-post-excerpt-object",
+      data: src,
+      type: block.mediaType || "image/svg+xml",
+      "aria-label": block.alt,
+      key,
+    });
+  }
+
+  if (block.type === "embed") {
+    return h("embed", {
+      class: "blog-post-excerpt-embed",
+      src,
+      type: block.mediaType,
+      title: block.alt,
+      key,
+    });
+  }
+
+  return null;
+}
+
 function renderManualPreview(blocks, homeSlug, allSlugs) {
   const children = [];
 
   blocks.forEach((block, index) => {
-    if (block.type === "image") {
-      children.push(
-        h("img", {
-          class: "blog-post-excerpt-image",
-          src: resolvePreviewAssetUrl(homeSlug, block.target, allSlugs),
-          alt: block.alt,
-          loading: "lazy",
-          key: "image-" + index,
-        }),
-      );
+    if (block.type !== "text") {
+      const media = renderMediaBlock(block, homeSlug, allSlugs, "media-" + index);
+      if (media) children.push(media);
       return;
     }
 
@@ -240,14 +495,16 @@ function renderManualPreview(blocks, homeSlug, allSlugs) {
 }
 
 function renderPreview(page, homeSlug, allSlugs) {
-  // Use the original Markdown captured before Quartz converts embeds to plain text.
-  // This preserves image/GIF links in the manual preview as well as their order.
-  const sources = [page.manualPreviewSource, page.text, page.description];
-
-  for (const source of sources) {
-    if (typeof source !== "string") continue;
+  // Original Markdown keeps embeds that Quartz removes from page.text.
+  const source = page.previewSource ?? page.manualPreviewSource;
+  if (typeof source === "string") {
     const manual = parseManualPreview(source);
     if (manual !== null) return renderManualPreview(manual, homeSlug, allSlugs);
+
+    const automaticMedia = parseAutomaticMediaPreview(source);
+    if (automaticMedia !== null) {
+      return renderManualPreview(automaticMedia.blocks, homeSlug, allSlugs);
+    }
   }
 
   const excerpt = plainExcerpt(page);
@@ -377,6 +634,11 @@ BlogHomeBody.css = [
   ".blog-post-excerpt-text { margin: 0 0 0.65rem; }",
   ".blog-post-excerpt-text:last-child { margin-bottom: 0; }",
   ".blog-post-excerpt-image { display: block; max-width: 100%; max-height: 28rem; width: auto; height: auto; margin: 0 0 0.85rem; border-radius: 3px; }",
+  ".blog-post-excerpt-video { display: block; max-width: 100%; max-height: 28rem; width: min(100%, 40rem); height: auto; margin: 0 0 0.85rem; border-radius: 3px; }",
+  ".blog-post-excerpt-audio { display: block; max-width: 100%; width: min(100%, 40rem); margin: 0 0 0.85rem; }",
+  ".blog-post-excerpt-iframe { display: block; max-width: 100%; width: min(100%, 40rem); height: auto; min-height: 14rem; aspect-ratio: 16 / 9; margin: 0 0 0.85rem; border: 0; border-radius: 3px; }",
+  ".blog-post-excerpt-iframe-document { aspect-ratio: 4 / 5; }",
+  ".blog-post-excerpt-object, .blog-post-excerpt-embed { display: block; max-width: 100%; width: min(100%, 40rem); min-height: 14rem; margin: 0 0 0.85rem; }",
   ".blog-post-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 1rem; }",
   ".blog-tag { display: inline-flex; align-items: center; padding: 0.16rem 0.65rem; border: 0; border-radius: 999px; color: var(--dark) !important; background: var(--lightgray) !important; font-family: var(--bodyFont); font-size: 0.88rem; font-weight: 400; line-height: 1.5; text-decoration: none; transition: background 0.15s ease, color 0.15s ease; }",
   ".blog-tag:hover { color: var(--dark); background: var(--lightgray); }",
