@@ -68,7 +68,9 @@ export default function PreviewBoundary() {
     markdownPlugins() {
       return [
         () => (_tree, file) => {
-          const previewSource = extractManualPreviewSource(file.value);
+          const source = String(file.value ?? "");
+          file.data.previewSource = source;
+          const previewSource = extractManualPreviewSource(source);
           if (previewSource !== null) {
             file.data.manualPreviewSource = previewSource;
           }
