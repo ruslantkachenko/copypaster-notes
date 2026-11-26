@@ -6,10 +6,11 @@ const TagFilter = BlogTagFilter();
 const css = TagFilter.css;
 
 function ruleBody(selector) {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = css.match(new RegExp(escaped + "\s*\\{([^}]*)\\}"));
-  assert.ok(match, `Missing CSS rule: ${selector}`);
-  return match[1];
+  const start = css.indexOf(selector);
+  const open = css.indexOf("{", start);
+  const close = css.indexOf("}", open);
+  assert.ok(start >= 0 && open > start && close > open, "Missing CSS rule: " + selector);
+  return css.slice(open + 1, close);
 }
 
 test("tag cloud chips use the same light-gray palette as tags in full posts", () => {
