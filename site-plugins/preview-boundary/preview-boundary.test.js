@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   PREVIEW_BOUNDARY_TOKEN,
+  capturePreviewSources,
   extractManualPreviewSource,
   markPreviewBoundary,
   removePreviewBoundary,
@@ -43,4 +44,41 @@ test("removes the token from the rendered article tree", () => {
   };
   removePreviewBoundary(tree);
   assert.deepEqual(tree.children, [{ type: "text", value: "Початок  продовження" }]);
+});
+
+
+test("captures the full Markdown source even when no manual marker exists", () => {
+  const file = {
+    value: "---\ntitle: Solo media\n---\n![[embedded/solo.gif]]",
+    data: {},
+  };
+  capturePreviewSources(file);
+  assert.equal(file.data.previewSource, file.value);
+  assert.equal(file.data.manualPreviewSource, undefined);
+});
+
+test("captures both the full note and manual preview prefix when a marker exists", () => {
+  const file = {
+    value: [
+      "---",
+      "title: Manual preview",
+      "---",
+      "![[embedded/cover.jpg]]",
+      PREVIEW_BOUNDARY_TOKEN,
+      "The rest of the note.",
+    ].join("\n"),
+    data: {},
+  };
+  capturePreviewSources(file);
+  assert.equal(file.data.previewSource, file.value);
+  assert.equal(
+    file.data.manualPreviewSource,
+    [
+      "---",
+      "title: Manual preview",
+      "---",
+      "![[embedded/cover.jpg]]",
+      PREVIEW_BOUNDARY_TOKEN,
+    ].join("\n"),
+  );
 });
