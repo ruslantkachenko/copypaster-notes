@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors, center-homepage-brand-title, brand-title-outline]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors, center-homepage-brand-title, brand-title-outline, auto-media-first-previews]
   workflow_dispatch:
 
 permissions:
