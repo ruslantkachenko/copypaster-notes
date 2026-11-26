@@ -305,10 +305,36 @@ function BlogHomeBody({ ctx, fileData, tree, allFiles, cfg }) {
     );
   });
 
+  const introTitle = fileData.frontmatter?.title ?? cfg.pageTitle ?? "Записки копіпастера";
+
   return h("div", { class: "blog-home" }, [
-    h("section", { class: "blog-intro" }, intro),
-    h("section", { class: "blog-feed", "aria-label": "Стрічка публікацій" }, [
-      h("h2", { class: "blog-feed-heading" }, "Публікації"),
+    h("section", { class: "blog-intro" }, [
+      h("details", { class: "blog-intro-disclosure" }, [
+        h("summary", { class: "blog-intro-toggle" }, [
+          h(
+            "svg",
+            {
+              xmlns: "http://www.w3.org/2000/svg",
+              width: "14",
+              height: "14",
+              viewBox: "5 8 14 8",
+              fill: "none",
+              stroke: "currentColor",
+              "stroke-width": "2",
+              "stroke-linecap": "round",
+              "stroke-linejoin": "round",
+              class: "blog-intro-chevron",
+              "aria-hidden": "true",
+            },
+            h("polyline", { points: "6 9 12 15 18 9" }),
+          ),
+          h("span", { class: "blog-intro-title" }, introTitle),
+        ]),
+        h("div", { class: "blog-intro-content" }, intro),
+      ]),
+    ]),
+    h("section", { class: "blog-feed", "aria-label": "Стрічка думок" }, [
+      h("h2", { class: "blog-feed-heading" }, "Стрічка думок"),
       cards.length
         ? cards
         : h("p", { class: "blog-feed-empty" }, "Публікацій із тегом published поки немає."),
@@ -325,21 +351,30 @@ BlogHomeBody.css = [
   ".blog-home { width: 100%; }",
   ".blog-intro { margin-bottom: 3rem; }",
   ".blog-intro > :first-child { margin-top: 0; }",
+  ".blog-intro-disclosure { margin: 0; }",
+  ".blog-intro-toggle { display: flex; align-items: center; gap: 0.45rem; list-style: none; cursor: pointer; color: var(--dark); }",
+  ".blog-intro-toggle::-webkit-details-marker { display: none; }",
+  ".blog-intro-toggle::marker { content: \"\"; }",
+  ".blog-intro-chevron { flex: none; color: var(--darkgray); transition: transform 0.3s ease; }",
+  ".blog-intro-disclosure:not([open]) .blog-intro-chevron { transform: rotate(-90deg); }",
+  ".blog-intro-title { font-family: var(--headerFont); font-size: 1.35rem; font-weight: 600; line-height: 1.35; }",
+  ".blog-intro-content { padding-top: 0.65rem; }",
+  ".blog-intro-content > :first-child { margin-top: 0; }",
   ".blog-intro img { max-width: 100%; height: auto; border-radius: 3px; }",
   ".blog-feed-heading { margin: 0 0 1.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--lightgray); font-size: 1.35rem; }",
   ".blog-post-preview { padding: 0 0 2.25rem; margin: 0 0 2.25rem; border-bottom: 1px solid var(--lightgray); }",
   ".blog-post-date { margin: 0 0 0.55rem; color: var(--gray); font-size: 0.88rem; }",
   ".blog-post-title { margin: 0 0 0.9rem; font-size: 1.35rem; line-height: 1.35; }",
-  ".blog-post-title a { color: var(--dark); text-decoration: none; }",
+  ".blog-post-title a { color: var(--dark) !important; background: transparent !important; box-shadow: none !important; text-decoration: none; }",
   ".blog-post-title a:hover, .blog-read-more:hover { color: var(--secondary); }",
   ".blog-post-excerpt { margin: 0 0 1rem; line-height: 1.75; }",
   ".blog-post-excerpt-text { margin: 0 0 0.65rem; }",
   ".blog-post-excerpt-text:last-child { margin-bottom: 0; }",
   ".blog-post-excerpt-image { display: block; max-width: 100%; max-height: 28rem; width: auto; height: auto; margin: 0 0 0.85rem; border-radius: 3px; }",
   ".blog-post-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 1rem; }",
-  ".blog-tag { display: inline-flex; align-items: center; padding: 0.2rem 0.7rem; border: 0; border-radius: 999px; color: var(--darkgray); background: var(--highlight); font-size: 0.78rem; text-decoration: none; transition: background 0.15s ease, color 0.15s ease; }",
+  ".blog-tag { display: inline-flex; align-items: center; padding: 0.16rem 0.65rem; border: 0; border-radius: 999px; color: var(--dark) !important; background: var(--lightgray) !important; font-family: var(--bodyFont); font-size: 0.88rem; font-weight: 400; line-height: 1.5; text-decoration: none; transition: background 0.15s ease, color 0.15s ease; }",
   ".blog-tag:hover { color: var(--dark); background: var(--lightgray); }",
-  ".blog-read-more { display: inline-block; color: var(--secondary); font-size: 0.9rem; font-weight: 600; text-decoration: none; }",
+  ".blog-read-more { display: inline-block; padding: 0 !important; border: 0 !important; border-radius: 0 !important; color: var(--secondary) !important; background: transparent !important; box-shadow: none !important; font-size: 0.9rem; font-weight: 600; text-decoration: none; }",
   ".blog-feed-empty { color: var(--gray); font-style: italic; }",
 ].join("\n");
 
