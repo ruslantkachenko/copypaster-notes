@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden]
   workflow_dispatch:
 
 permissions:
@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**', 'site-plugins/published-visibility/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
@@ -84,6 +84,10 @@ jobs:
       - name: Test manual blog previews
         working-directory: quartz-engine
         run: node --test site-plugins/blog-home/preview.test.js site-plugins/preview-boundary/preview-boundary.test.js
+
+      - name: Test published visibility
+        working-directory: quartz-engine
+        run: node --test site-plugins/published-visibility/visibility.test.js
 
       - name: Build site
         working-directory: quartz-engine
@@ -181,6 +185,28 @@ jobs:
             exit 1
           fi
           echo "Homepage intro is collapsible and collapsed by default."
+
+      - name: Verify unpublished posts are hidden from discovery
+        working-directory: quartz-engine
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const index = JSON.parse(fs.readFileSync("public/static/contentIndex.json", "utf8"));
+          const found = Object.entries(index).filter(([slug, page]) =>
+            slug.toLowerCase().includes("межигорье") ||
+            String(page.title ?? "").toLowerCase() === "межигорье vs госбюджет"
+          );
+          if (found.length) {
+            console.error("The unpublished note is still present in contentIndex.json:", found.map(([slug]) => slug));
+            process.exit(1);
+          }
+          console.log("The unpublished note is absent from contentIndex.json.");
+          NODE
+          if ! find public -type f -iname '*госбюджет*.html' | grep -q .; then
+            echo "The note HTML was not emitted; unlisting should hide it from discovery, not delete the page."
+            exit 1
+          fi
+          echo "The note HTML remains available by direct URL."
 
       - uses: actions/upload-pages-artifact@v5
         with:
