@@ -323,6 +323,7 @@ layout:
         - blog-home
     blog-home:
       exclude:
+        - article-title
         - content-meta
         - note-properties
         - recent-notes
