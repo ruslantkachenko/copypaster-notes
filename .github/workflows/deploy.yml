@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish]
   workflow_dispatch:
 
 permissions:
@@ -168,6 +168,19 @@ jobs:
             exit 1
           fi
           echo "Both custom sidebar labels are present."
+          if ! grep -Fq 'Стрічка думок' "$HOME_HTML"; then
+            echo "The homepage feed heading was not updated."
+            exit 1
+          fi
+          if ! grep -Fq 'blog-intro-disclosure' "$HOME_HTML"; then
+            echo "The homepage presentation note is not wrapped in a disclosure."
+            exit 1
+          fi
+          if grep -Fq '<details class="blog-intro-disclosure" open' "$HOME_HTML"; then
+            echo "The homepage presentation note should be collapsed by default."
+            exit 1
+          fi
+          echo "Homepage intro is collapsible and collapsed by default."
 
       - uses: actions/upload-pages-artifact@v5
         with:
