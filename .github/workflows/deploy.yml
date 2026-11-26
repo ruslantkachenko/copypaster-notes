@@ -54,7 +54,7 @@ jobs:
           path: |
             quartz-engine/node_modules
             quartz-engine/.quartz/plugins
-          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**') }}
+          key: quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-${{ hashFiles('quartz.lock.json', 'quartz/styles/custom.scss', 'site-plugins/blog-home/**', 'site-plugins/publish-path-fix/**', 'site-plugins/preview-boundary/**', 'site-plugins/published-visibility/**') }}
           restore-keys: |
             quartz-deps-9cf87ff1c248a8ca551093214b0fec3b31415009-
 
