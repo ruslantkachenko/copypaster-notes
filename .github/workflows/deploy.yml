@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors]
+    branches: [main, blog-layout-prototype, gif-attachment-path-fix, manual-blog-excerpts, fix-preview-marker-flow, homepage-image-preview-fix, fix-homepage-image-url, disable-recent-notes, fix-short-image-embed-paths, minimal-note-tags, disable-home-preview-popovers, rename-blog-sidebar-labels, homepage-visual-polish, unpublished-pages-hidden, match-tag-cloud-chip-colors, center-homepage-brand-title]
   workflow_dispatch:
 
 permissions:
@@ -185,6 +185,11 @@ jobs:
             exit 1
           fi
           echo "Homepage intro is collapsible and collapsed by default."
+          if ! grep -Fq 'blog-intro-chevron-wrap' "$HOME_HTML" || ! grep -Fq 'blog-intro-title' "$HOME_HTML"; then
+            echo "The centered intro title or its disclosure control is missing."
+            exit 1
+          fi
+          echo "Centered intro title and small disclosure control are present."
 
       - name: Verify unpublished posts are hidden from discovery
         working-directory: quartz-engine
